@@ -98,8 +98,8 @@ namespace RTree
    class RTreeNode<T>
    {
       // Refer to paper for naming convention.
-      public const uint M = 9;
-      public const uint m = 4;
+      public const uint M = 4;
+      public const uint m = 2;
 
       private bool isLeaf;
       private List<IndexRecord<T>> records;
@@ -155,24 +155,8 @@ namespace RTree
 
          NodeRecord<T> groupOne = new NodeRecord<T>() { BBox = A.BBox, Node = new RTreeNode<T>(isLeaf) };
          NodeRecord<T> groupTwo = new NodeRecord<T>() { BBox = B.BBox, Node = new RTreeNode<T>(isLeaf) };
-
-         if( groupOne.Node.GetRecordCount() + itemsToBeAssigned.Count <= m )
-         {
-            while( itemsToBeAssigned.Count > 0 )
-            {
-               groupOne.TryInsert(itemsToBeAssigned.First());
-               itemsToBeAssigned.Remove(itemsToBeAssigned.First());
-            }
-         }
-
-         if( groupTwo.Node.GetRecordCount() + itemsToBeAssigned.Count <= m )
-         {
-            while( itemsToBeAssigned.Count > 0 )
-            {
-               groupTwo.TryInsert(itemsToBeAssigned.First());
-               itemsToBeAssigned.Remove(itemsToBeAssigned.First());
-            }
-         }
+         groupOne.Node.TryInsert(A);
+         groupTwo.Node.TryInsert(B);
 
          while( itemsToBeAssigned.Count > 0)
          {
@@ -200,6 +184,24 @@ namespace RTree
             }
 
             itemsToBeAssigned.Remove(next);
+
+            if (groupOne.Node.GetRecordCount() + itemsToBeAssigned.Count <= m)
+            {
+               while (itemsToBeAssigned.Count > 0)
+               {
+                  groupOne.TryInsert(itemsToBeAssigned.First());
+                  itemsToBeAssigned.Remove(itemsToBeAssigned.First());
+               }
+            }
+
+            if (groupTwo.Node.GetRecordCount() + itemsToBeAssigned.Count <= m)
+            {
+               while (itemsToBeAssigned.Count > 0)
+               {
+                  groupTwo.TryInsert(itemsToBeAssigned.First());
+                  itemsToBeAssigned.Remove(itemsToBeAssigned.First());
+               }
+            }
          }
 
          // Set this equal to group two.

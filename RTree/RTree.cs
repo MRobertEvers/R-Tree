@@ -77,19 +77,15 @@ namespace RTree
             splitNode = insertNode.Split(item);
          }
 
-         // I3.
+         // I3. Split node is the node that will need to be put
+         //     under the new root node if there is one.
          if( adjustTree(leafPath, insertNode, ref splitNode) )
          {
-            // splitnode is a node on the root.
-            if( !root.TryInsert(splitNode) )
-            {
-               // I4.
-               var rootChild = root.Split(splitNode);
-               NodeRecord<T> newRoot = new NodeRecord<T>();
-               newRoot.TryInsert(root);
-               newRoot.TryInsert(rootChild);
-               root = newRoot;
-            }
+            // I4.
+            NodeRecord<T> newRoot = new NodeRecord<T>() { Node = new RTreeNode<T>(Leaf: false) };
+            newRoot.TryInsert(root);
+            newRoot.TryInsert(splitNode);
+            root = newRoot;
          }
       }
 
@@ -168,11 +164,11 @@ namespace RTree
 
       public static int EnclosingArea(RTreeRectangle a, RTreeRectangle b)
       {
-         int minX1 = Math.Max(a.X1, b.X1);
-         int minY1 = Math.Max(a.Y1, b.Y1);
+         int minX1 = Math.Min(a.X1, b.X1);
+         int minY1 = Math.Min(a.Y1, b.Y1);
 
-         int maxX2 = Math.Min(a.X2, b.X2);
-         int maxY2 = Math.Min(a.Y2, b.Y2);
+         int maxX2 = Math.Max(a.X2, b.X2);
+         int maxY2 = Math.Max(a.Y2, b.Y2);
 
          return (maxX2 - minX1) * (maxY2 - minY1);
       }
