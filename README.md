@@ -1,5 +1,5 @@
 # R-Tree Implementation
-Inspired to write algoritm implementation by [RBush](https://github.com/mourner/rbush)
+Inspired to write algoritm implementation by [RBush](https://github.com/mourner/rbush) 
 The structure looked interesting so I wanted to try for myself.
 
 
