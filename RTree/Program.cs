@@ -17,8 +17,11 @@ namespace RTree
          searchArea.Y2 = 3;
 
          RTree<int> testTree = new RTree<int>();
+         // Outside
          testTree.Insert(99, 1, 0);
          testTree.Insert(100, 1, 6);
+
+         // Inside
          testTree.Insert(1, 0, 0);
          testTree.Insert(2, -5, -1);
          testTree.Insert(3, 0, 3);
