@@ -22,11 +22,27 @@ namespace RTree
       }
 
       /// <summary>
+      /// Remove the input item from the list.
+      /// </summary>
+      /// <param name="item">Item to remove</param>
+      public void Delete(LeafRecord<T> item)
+      {
+         NodeRecord<T> node = root;
+         List<NodeRecord<T>> nodePath = new List<NodeRecord<T>>();
+         if( findLeaf( item, ref node, nodePath) )
+         {
+            nodePath.Insert(0, root);
+            node.Node.GetRecords().Remove(item);
+            condenseTree(node, nodePath);
+         }
+      }
+
+      /// <summary>
       /// Wraps the search function. Eliminates the need to specify a node.
       /// </summary>
       /// <param name="SearchBox">Area to retrieve data from</param>
       /// <returns>List of all LeafRecords within that area.</returns>
-      public List<LeafRecord<T>> Find(RTreeRectangle SearchBox)
+      public List<LeafRecord<T>> Search(RTreeRectangle SearchBox)
       {
          return search(SearchBox, root);
       }
@@ -86,6 +102,108 @@ namespace RTree
             newRoot.TryInsert(root);
             newRoot.TryInsert(splitNode);
             root = newRoot;
+         }
+      }
+
+      /// <summary>
+      /// Finds the leaf node that contains the leaf record if able.
+      /// </summary>
+      /// <param name="item">Item to find</param>
+      /// <param name="rRoot">Tree to search</param>
+      /// <param name="rLeafPath">Path to node from root</param>
+      /// <returns>true if leaf is found</returns>
+      private bool findLeaf(LeafRecord<T> item, ref NodeRecord<T> rRoot, List<NodeRecord<T>> rLeafPath)
+      {
+         NodeRecord<T> node = rRoot;
+         if( !node.Node.IsLeaf() )
+         {
+            foreach( var childNode in node.Node.GetRecords() )
+            {
+               if( childNode.BBox.Overlaps(item.BBox) )
+               {
+                  node = (NodeRecord<T>)childNode;
+                  if( findLeaf(item, ref node, rLeafPath))
+                  {
+                     rLeafPath.Insert(0, node);
+                     rRoot = node;
+                     return true;
+                  }
+               }
+            }
+         }
+         else
+         {
+            foreach( var childNode in node.Node.GetRecords() )
+            {
+               LeafRecord<T> leaf = (LeafRecord<T>)childNode;
+               if( leaf.IsEqual(item) )
+               {
+                  return true;
+               }
+            }
+         }
+
+         return false;
+      }
+
+      /// <summary>
+      /// Removes unfull nodes and shrinks BBoxs along the leafpath.
+      /// </summary>
+      /// <param name="deletedRecordNode">node with leaf deleted</param>
+      /// <param name="leafPath">Path from root to node with deletion</param>
+      private void condenseTree(NodeRecord<T> deletedRecordNode, List<NodeRecord<T>> leafPath)
+      {
+         List<NodeRecord<T>> Q = new List<NodeRecord<T>>();
+         NodeRecord<T> N = deletedRecordNode;
+         while(true)
+         {
+            if( N == root ) { break; }
+
+            int level = leafPath.IndexOf(N);
+            NodeRecord<T> P = leafPath[level - 1];
+            if (N.Node.GetRecordCount() < RTreeNode<T>.m)
+            {
+               P.Node.GetRecords().Remove(N);
+               Q.Add(N);
+            }
+            else
+            {
+               N.ResizeBBox();
+            }
+
+            N = P;
+         }
+
+         // We don't have to worry about doubling down because 
+         // at each level, we separated the removed node from its
+         // parents. So even if an 'ex-parent' is present with its 
+         // 'ex-child' in the list, we won't double down.
+         foreach( var orphan in Q )
+         {
+            reinsertNode(orphan);
+         }
+      }
+
+      /// <summary>
+      /// Goes to the leaf nodes of the input tree and re-adds them
+      /// to this tree.
+      /// </summary>
+      /// <param name="node"></param>
+      private void reinsertNode(NodeRecord<T> node)
+      {
+         if (node.Node.IsLeaf())
+         {
+            foreach (var leafRecord in node.Node.GetRecords())
+            {
+               Insert((LeafRecord<T>)leafRecord);
+            }
+         }
+         else
+         {
+            foreach (var nodeRecord in node.Node.GetRecords())
+            {
+               reinsertNode((NodeRecord<T>)nodeRecord);
+            }
          }
       }
 

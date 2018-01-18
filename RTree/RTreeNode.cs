@@ -41,6 +41,19 @@ namespace RTree
       }
 
       /// <summary>
+      /// Returns true if both points equal.
+      /// </summary>
+      /// <param name="b"></param>
+      /// <returns></returns>
+      public bool IsEqual(RTreeRectangle b)
+      {
+         return X1 == b.X1 &&
+                X2 == b.X2 &&
+                Y1 == b.Y1 &&
+                Y2 == b.Y2;
+      }
+
+      /// <summary>
       /// Returns whether two rectangles intersect.
       /// </summary>
       /// <param name="b"></param>
@@ -71,6 +84,11 @@ namespace RTree
    class LeafRecord<T> : IndexRecord<T>
    {
       public T Data;
+
+      public bool IsEqual(LeafRecord<T> obj)
+      {
+         return obj.BBox.IsEqual(BBox) && Data.Equals(obj.Data);
+      }
    }
 
    /// <summary>
