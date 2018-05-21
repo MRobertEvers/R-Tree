@@ -221,7 +221,7 @@ namespace RTree
          if(records.Count < M)
          {
             records.Add(item);
-            // TODO: Extend the bounding box.
+            // Bounding box resizing must be handled by calling function.
             return true;
          }
          else
