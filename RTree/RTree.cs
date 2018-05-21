@@ -270,7 +270,6 @@ namespace RTree
             // CL2.
             if (N.Node.IsLeaf()) { return N; }
 
-            int itemArea = item.BBox.GetArea();
             int minEnlargementArea = int.MaxValue;
             int minArea = int.MaxValue;
 
@@ -279,23 +278,27 @@ namespace RTree
             // add the new item. If there is a tie, use the node with the 
             // smallest area.
             int enlargementArea;
+            int nodeArea;
             foreach (var childNode in N.Node.GetRecords())
             {
                NodeRecord<T> nodeRecord = (NodeRecord<T>)childNode;
                NodeRecord<T> F = nodeRecord; // See Paper for naming.
-               enlargementArea = EnclosingArea(nodeRecord.BBox, item.BBox) - itemArea;
+               enlargementArea = EnclosingArea(nodeRecord.BBox, item.BBox) - item.BBox.GetArea();
+               nodeArea = nodeRecord.BBox.GetArea();
 
                if (enlargementArea < minEnlargementArea)
                {
                   minEnlargementArea = enlargementArea;
+                  minArea = nodeArea;
                   // CL4.
                   N = F;
                }
+               // Resolve ties using the node with the smallest size.
                else if (enlargementArea == minEnlargementArea)
                {
-                  if (itemArea < minArea)
+                  if (nodeArea < minArea)
                   {
-                     minArea = itemArea;
+                     minArea = nodeArea;
                      // CL4.
                      N = F;
                   }
